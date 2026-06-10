@@ -1,0 +1,27 @@
+{
+  "name": "threejs",
+  "version": "1.0.0",
+  "description": "npm init -y npm install parcel --save-dev //or install globally: npm install parcel -g npm install three npm install data.gui",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/azrulsaleh/threejs.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/azrulsaleh/threejs/issues"
+  },
+  "homepage": "https://github.com/azrulsaleh/threejs#readme",
+  "devDependencies": {
+    "parcel": "^2.16.4"
+  },
+  "dependencies": {
+    "dat.gui": "^0.7.9",
+    "three": "^0.184.0"
+  },
+  "type": "commonjs"
+}
