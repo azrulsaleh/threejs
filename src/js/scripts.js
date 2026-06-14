@@ -10,13 +10,9 @@ import stars from 'url:../img/stars.jpg';
 
 const chairUrl = new URL('../assets/monkey.glb', import.meta.url);
 
-//window
-const w = window.innerWidth;
-const h = window.innerHeight;
-
 //renderer
 const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setSize(w, h);
+renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 renderer.shadowMap.enabled = true;
 
@@ -36,9 +32,10 @@ const _camera = {
 	y: 0,
 	z: 100,
 	fov: 45,
-	aspect: w / h,
+	aspect: window.innerWidth / window.innerHeight,
 	near: 0.1,
 	far: 1000,
+	cameraReset() { updateCameraFrame(); },
 };
 const camera = new THREE.PerspectiveCamera(_camera.fov, _camera.aspect, _camera.near, _camera.far);
 camera.position.set(_camera.x, _camera.y, _camera.z);
@@ -98,21 +95,10 @@ function updateCameraFrame() {
 //orbit
 const orbit = new OrbitControls(camera, renderer.domElement);
 orbit.update();
+orbit.enabled = false;
 
 //skybox
-renderer.setClearColor(0xE69913);
-// const cubeTextureLoader = new THREE.CubeTextureLoader();
-// cubeTextureLoader.load([
-// 	nebula,
-// 	nebula,
-// 	stars,
-// 	stars,
-// 	stars,
-// 	stars
-// ], function(texture) {
-//     texture.colorSpace = THREE.SRGBColorSpace;
-//     scene.background = texture;
-// });
+renderer.setClearColor(0x161903);
 
 //debug
 const _debug = {
@@ -190,10 +176,11 @@ sLightHelper.visible = _sLight.helper;
 
 //table
 const _table = {
+	visible: true,
 	radius: 30,
 	segment: 64,
 	depth: 5.0,
-	color: '#0c5f82',
+	color: '#03161e',
 	receiveShadow: true,
 	wireframe: false,
 	bevel: true,
@@ -211,11 +198,13 @@ const tableMat = new THREE.MeshStandardMaterial({
 });
 const table = new THREE.Mesh(tableGeo, tableMat);
 scene.add(table);
+table.visible = _table.visible;
 table.position.z = -_table.depth - 0.25;
 table.receiveShadow = _table.receiveShadow;
 
 //avatar
 const _avatar = {
+	visible: false,
 	w: 12,
 	h: 6,
 	color: '#965F8F',
@@ -232,6 +221,10 @@ scene.add(avatarA);
 scene.add(avatarB);
 scene.add(avatarC);
 scene.add(avatarD);
+avatarA.visible = _avatar.visible;
+avatarB.visible = _avatar.visible;
+avatarC.visible = _avatar.visible;
+avatarD.visible = _avatar.visible;
 avatarA.position.set(_avatar.pos[0][0], _avatar.pos[0][1], _avatar.pos[0][2]);
 avatarB.position.set(_avatar.pos[1][0], _avatar.pos[1][1], _avatar.pos[1][2]);
 avatarC.position.set(_avatar.pos[2][0], _avatar.pos[2][1], _avatar.pos[2][2]);
@@ -251,7 +244,7 @@ const _discard = {
 	x: 0,
 	y: 0,
 	z: 0,
-	color: '#FFFF00',
+	color: '#009999',
 	w: 10,
 	d: 5,
 	h: 2,
@@ -278,19 +271,19 @@ discard.add(discardOutline);
 //bounce
 const _bounce = {
 	radius: 1,
-	color: '#0000FF',
+	color: '#995500',
 	wireframe: false,
 	castShadow: false,
 	animate: true,
 	speed: 0.05,
 	player: 1,
-	pos: [[0, -20, 1], [-20, 20, 1], [0, 20, 1], [20, 20, 1]],
+	pos: [[0, -20, 5], [-20, 10, 5], [0, 20, 5], [20, 10, 5]],
 };
 const bounceGeo = new THREE.ConeGeometry(_bounce.radius, 1, 3);
 const bounceMat = new THREE.MeshStandardMaterial({ color: _bounce.color, wireframe: _bounce.wireframe });
 const bounce = new THREE.Mesh(bounceGeo, bounceMat);
 scene.add(bounce);
-bounce.position.set(_bounce.pos[0][0], _bounce.pos[0][1], _bounce.pos[0][2]);
+bounce.position.set(_bounce.pos[1][0], _bounce.pos[1][1], _bounce.pos[1][2]);
 bounce.castShadow = _bounce.castShadow;
 bounce.rotation.x = Math.PI * -0.5;
 const bounceOutline = new THREE.LineSegments(
@@ -299,52 +292,80 @@ const bounceOutline = new THREE.LineSegments(
 )
 bounce.add(bounceOutline);
 
-//texture
-// const textureLoader = new THREE.TextureLoader();
-// textureLoader.load(stars, function(texture) {
-//     texture.colorSpace = THREE.SRGBColorSpace;
-//     scene.background = texture;
-// });
-
 //chair
 const assetLoader = new GLTFLoader();
-assetLoader.load(chairUrl.href, function(gltf) {
-	const chair0 = gltf.scene;
-	const chair1 = gltf.scene;
-	scene.add(chair0);
-	scene.add(chair1);
-	chair0.position.set(0, -35, -5);
-	chair1.position.set(0, 35, -5);
+assetLoader.load(chairUrl.href, (gltf) => {
+	const chair = gltf.scene;
+	scene.add(chair);
+	chair.position.set(0, 38, 0);
+	chair.scale.set(10, 10, 10);
+	chair.rotation.x = Math.PI * 0.5;
 }, undefined, function(error) {
 	console.error(error);
 });
 
 //frenzy
-// const frenzyGeometry = new THREE.PlaneGeometry(10, 10, 10, 10);
-// const frenzyMaterial = new THREE.MeshBasicMaterial({
-// 	color: 0xFFFFFF,
-// 	wireframe: true
-// });
-// const frenzy = new THREE.Mesh(frenzyGeometry, frenzyMaterial);
-// scene.add(frenzy);
-// frenzy.position.set(10, 10, 15);
+const _frenzy = {
+	x: 10,
+	y: 25,
+	z: 5,
+	w: 5,
+	h: 5,
+	w_segment: 10,
+	h_segment: 10,
+	visible: false,
+	anim: true,
+	speed: 0.001,
+};
+const frenzyGeo = new THREE.PlaneGeometry(_frenzy.w, _frenzy.h, _frenzy.w_segment, _frenzy.h_segment);
+const frenzyMat = new THREE.MeshBasicMaterial({
+	color: 0xFFFFFF,
+	wireframe: true,
+});
+const frenzy = new THREE.Mesh(frenzyGeo, frenzyMat);
+scene.add(frenzy);
+frenzy.position.set(_frenzy.x, _frenzy.y, _frenzy.z);
+frenzy.rotation.x = Math.PI * 0.5;
+frenzy.visible = _frenzy.visible;
+
+//card
+const _card = {
+	x: 0,
+	y: -25,
+	z: 5,
+	w: 5,
+	h: 8,
+	color: '#990000',
+	angle: 0.15,
+};
+function createRoundedPlane(width, height, radius, segments = 12) {
+    const shape = new THREE.Shape();
+    const x = -width / 2;
+    const y = -height / 2;
+    shape.moveTo(x, y + radius);
+    shape.lineTo(x, y + height - radius);
+    shape.quadraticCurveTo(x, y + height, x + radius, y + height);
+    shape.lineTo(x + width - radius, y + height);
+    shape.quadraticCurveTo(x + width, y + height, x + width, y + height - radius);
+    shape.lineTo(x + width, y + height - radius);
+    shape.quadraticCurveTo(x + width, y, x + width - radius, y);
+    shape.lineTo(x + radius, y);
+    shape.quadraticCurveTo(x, y, x, y + radius);
+    return new THREE.ShapeGeometry(shape, segments);
+}
+const cardGeo = createRoundedPlane(_card.w, _card.h, 0.4);
+const cardMat = new THREE.MeshBasicMaterial({
+	color: _card.color,
+	side: THREE.DoubleSide,
+});
+const card = new THREE.Mesh(cardGeo, cardMat);
+scene.add(card);
+card.position.set(_card.x, _card.y, _card.z);
+card.rotation.x = Math.PI * -0.5;
 
 //gui
 const gui = new dat.GUI();
-// gui.open();
-const options = {
-	cameraReset() { updateCameraFrame(); },
-
-	bounceEnable: true,
-	bounceColor: '#96ea42',
-	bounceWireframe: false,
-	bounceSpeed: 0.01,
-	bounceAnimate: true,
-	frenzyEnable: true,
-	frenzyWireframe: true,
-	frenzySpeed: 0.001,
-	frenzyAnimate: false
-};
+gui.close();
 
 //scene
 const globalFolder = gui.addFolder("Global");
@@ -354,16 +375,16 @@ globalFolder.add(sceneAxesHelper, 'visible').name("Axes Helper");
 
 //camera
 const cameraFolder = globalFolder.addFolder("Camera");
-cameraFolder.open();
+// cameraFolder.open();
 const xController = cameraFolder.add(camera.position, "x", -100, 100, 1).onChange(e => { camera.lookAt(scene.position); }).name("X");
 const yController = cameraFolder.add(camera.position, "y", -200, 0, 1).onChange(e => { camera.lookAt(scene.position); }).name("Y");
 const zController = cameraFolder.add(camera.position, "z", 0, 200, 1).onChange(e => { camera.lookAt(scene.position); }).name("Z");
 const fovController = cameraFolder.add(camera, "fov", 10, 120, 1).onChange(e => { camera.updateProjectionMatrix(); }).name("FOV");
-cameraFolder.add(options, "cameraReset").onChange(() => { updateCameraFrame(); }).name("Reset");
+cameraFolder.add(_camera, "cameraReset").onChange(() => { updateCameraFrame(); }).name("Reset");
 cameraFolder.add(orbit, "enabled").name("Orbit");
 
 const debugFolder = globalFolder.addFolder("Debug");
-debugFolder.open();
+// debugFolder.open();
 debugFolder.add(_debug, 'stats').onChange((e) => {
 	e ? document.body.appendChild(stats.dom) : document.body.removeChild(stats.dom);
 }).name('Stats');
@@ -421,7 +442,7 @@ const objectsFolder = gui.addFolder("Objects");
 
 //table
 const tableFolder = objectsFolder.addFolder("Table");
-tableFolder.open();
+// tableFolder.open();
 tableFolder.add(table, 'visible').name("Visible");
 tableFolder.addColor(_table, 'color').onChange((e) => {
 	tableMat.color.set(e);
@@ -431,7 +452,7 @@ tableFolder.add(tableMat, 'wireframe').name('Wireframe');
 
 //discard
 const discardFolder = objectsFolder.addFolder("Discard Pile");
-discardFolder.open();
+// discardFolder.open();
 discardFolder.add(discard, 'visible').name('Show');
 discardFolder.add(discard.position, 'x', -100, 100, 1).name("X");
 discardFolder.add(discard.position, 'y', -100, 100, 1).name("Y");
@@ -446,9 +467,9 @@ discardFolder.add(discard, 'castShadow').name('Cast Shadow');
 
 //bounce
 const bounceFolder = objectsFolder.addFolder("Bounce");
-bounceFolder.open();
+// bounceFolder.open();
 bounceFolder.add(bounce, 'visible').name("Visible");
-bounceFolder.addColor(options, 'bounceColor').onChange(function(e){ bounce.material.color.set(e); }).name("Color");
+bounceFolder.addColor(_bounce, 'color').onChange((e) => { bounce.material.color.set(e); }).name("Color");
 bounceFolder.add(bounceMat, 'wireframe').name("Wireframe");
 bounceFolder.add(_bounce, 'speed', 0, 0.5, 0.01).name("Speed");
 bounceFolder.add(_bounce, 'animate').name('Animate');
@@ -458,33 +479,86 @@ bounceFolder.add(_bounce, 'player', 0, 3, 1).onChange((e) => {
 	bounce.position.set(v[0], v[1], v[2]);
 }).name('Player');
 
+//avatar
+const avatarFolder = objectsFolder.addFolder("Avatar");
+// avatarFolder.open();
+avatarFolder.add(_avatar, 'visible').onChange((e) => {
+	avatarA.visible = e;
+	avatarB.visible = e;
+	avatarC.visible = e;
+	avatarD.visible = e;
+}).name('Visible');
+
 //frenzy
-// const frenzyFolder = objectsFolder.addFolder("Frenzy");
-// frenzyFolder.open();
-// frenzyFolder.add(options, 'frenzyEnable', 0, 1).onChange(function(e){
-// 	e ? scene.add(frenzy) :	scene.remove(frenzy);
-// }).name("Enable");
-// frenzyFolder.add(options, 'frenzyWireframe').onChange(function(e){
-// 	frenzy.material.wireframe = e;
-// }).name("Wireframe");
-// frenzyFolder.add(options, 'frenzySpeed', 0, 0.005, 0.0001).name("Speed");
-// frenzyFolder.add(options, 'frenzyAnimate', 0, 1).name('Animate');
+const frenzyFolder = objectsFolder.addFolder("Frenzy");
+frenzyFolder.open();
+frenzyFolder.add(frenzy, 'visible').name("Visible");
+frenzyFolder.add(_frenzy, 'anim').name("Animate");
+frenzyFolder.add(frenzyMat, 'wireframe').name("Wireframe");
+frenzyFolder.add(_frenzy, 'speed', 0, 0.005, 0.0001).name("Speed");
+
+//frenzy
+const cardFolder = objectsFolder.addFolder("Card");
+cardFolder.open();
+cardFolder.add(card, 'visible').name("Visible");
+cardFolder.add(cardMat, 'wireframe').name("Wireframe");
+cardFolder.add(_card, 'angle', 0, Math.PI * 0.3).name("Angle");
 
 //window resize
 updateCameraFrame();
 window.addEventListener('resize', updateCameraFrame);
 
+//raycaster
+const rayCaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+const canvas = renderer.domElement;
+
+const initialY = card.position.y; 
+let targetY = initialY;
+
+window.addEventListener('mousemove', (e) => {
+	const rect = canvas.getBoundingClientRect();
+	mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+	mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+});
+
+let visibilityTimeout = null;
+window.addEventListener('click', (e) => {
+	if (!rayCaster || !mouse) return;
+
+	const rect = canvas.getBoundingClientRect();
+	mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+	mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+	
+	rayCaster.setFromCamera(mouse, camera);
+    const intersects = rayCaster.intersectObjects([card ,discard]);
+    if (intersects.length > 0) {
+		if (intersects[0].object.id === card.id) {
+			if (targetY === initialY)
+				targetY = initialY + 2;
+			else
+				targetY = initialY;
+		} else if (intersects[0].object.id === discard.id) {
+			if (visibilityTimeout)
+				clearTimeout(visibilityTimeout);
+
+			frenzy.visible = true;
+			visibilityTimeout = setTimeout(() => {
+				frenzy.visible = false;
+				visibilityTimeout = null;
+			}, 1500);
+		}
+	}
+});
+
 //animate
-// const mousePosition = new THREE.Vector2();
-// window.addEventListener('mousemove', function(e) {
-// 	mousePosition.x = (e.clientX / this.window.innerWidth) * 2 - 1;
-// 	mousePosition.y = -(e.clientY / this.window.innerHeight) * 2 + 1;
-// });
-// const rayCaster = new THREE.Raycaster();
 let bounceStep = 0;
+let currentlyHovered = null;
+let hoveredObject = null;
+const originalColor = new THREE.Color();
 function animate(time) {
 	stats.begin();
-
+	
 	xController.updateDisplay();
     yController.updateDisplay();
     zController.updateDisplay();
@@ -505,28 +579,25 @@ function animate(time) {
 	avatarC.rotation.z = 0;
 	avatarD.rotation.z = 0;
 
-// 	rayCaster.setFromCamera(mousePosition, camera);
-// 	const intersects = rayCaster.intersectObjects(scene.children);
+	card.lookAt(camera.position);
+	card.rotateX(Math.PI * _card.angle);
+	card.position.y = THREE.MathUtils.lerp(card.position.y, targetY, 0.5);
 
-// 	for (let i = 0; i < intersects.length; i++) {
-// 		if (intersects[i].object.id === bounce.id)
-// 			intersects[i].object.material.color.set(0xFF0000);
-		
-// 		if (intersects[i].object.name === 'theBox') {
-// 			bounce.material.color.set(options.bounceColor);
-// 			intersects[i].object.rotation.x = time / 1000;
-// 			intersects[i].object.rotation.y = time / 1000;
-// 		}
-// 	}
+	rayCaster.setFromCamera(mouse, camera);
+	const intersects = rayCaster.intersectObjects(scene.children, true);
+	const isCardHovered = intersects.some(hit => hit.object.id === card.id);
+	if (isCardHovered)
+		card.material.color.set(0xff0000);
+	else
+		card.material.color.set(_card.color);
 
-// 	if (options.frenzyAnimate) {
-// 		const speed = options.frenzySpeed;
-// 		const t = time * speed;
-// 		const pos = frenzy.geometry.attributes.position.array;
-// 		for (let i = 0; i < frenzy.geometry.attributes.position.count * 3; i++)
-// 			pos[i] = Math.random() * 10 - 5;
-// 		frenzy.geometry.attributes.position.needsUpdate = true;
-// 	}
+	if (_frenzy.anim) {
+		const t = time * _frenzy.speed;
+		const pos = frenzy.geometry.attributes.position.array;
+		for (let i = 0; i < frenzy.geometry.attributes.position.count * 3; i++)
+			pos[i] = Math.random() * 10 - 5;
+		frenzy.geometry.attributes.position.needsUpdate = true;
+	}
 
 	renderer.render(scene, camera);
 
